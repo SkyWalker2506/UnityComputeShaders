@@ -14,6 +14,8 @@ public class Challenge2 : MonoBehaviour
 
     public Color fillColor = new Color(1.0f, 1.0f, 0.0f, 1.0f);
     public Color clearColor = new Color( 0, 0, 0.3f, 1.0f );
+    [SerializeField] private int sides =6;
+    [SerializeField] private float edgeThickness =.1f;
 
     // Use this for initialization
     void Start()
@@ -21,7 +23,7 @@ public class Challenge2 : MonoBehaviour
         outputTexture = new RenderTexture(texResolution, texResolution, 0);
         outputTexture.enableRandomWrite = true;
         outputTexture.Create();
-
+        
         rend = GetComponent<Renderer>();
         rend.enabled = true;
 
@@ -36,6 +38,8 @@ public class Challenge2 : MonoBehaviour
         shader.SetVector("clearColor", clearColor);
 
         shader.SetInt("texResolution", texResolution);
+        shader.SetInt("sides", sides);
+        shader.SetFloat("edgeThickness", edgeThickness);
         shader.SetTexture(kernelHandle, "Result", outputTexture);
        
         rend.material.SetTexture("_MainTex", outputTexture);

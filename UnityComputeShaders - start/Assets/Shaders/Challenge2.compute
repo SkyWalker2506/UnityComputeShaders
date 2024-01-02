@@ -11,6 +11,7 @@ int texResolution;
 float4 fillColor;
 float4 clearColor;
 int sides;
+float edgeThickness =1;
 float time;
 
 #include "noiseSimplex.cginc"
@@ -32,18 +33,18 @@ float polygon(float2 pt, float2 center, float radius, int sides, float rotate, f
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
 	//1. Change the coordinate space of id.xy from (0,0)-(texResolution,texResolution) to (-0.5, -0.5)-(0.5,0.5)
-	
+	    float2 pt = float2(id.xy) / float(texResolution) - float2(0.5, 0.5);
 	//2. Set the center to (0,0) and radius to 0.15
-	
+	    float2 center = float2(0,0);
+	    float radius = 0.15;
 	//3. Call polygon using the pt you calculated at step 1, the center and radius from step 2. 
 	//   sides and time are passed from the C# script
-    
+		float polygonValue = polygon(pt, center, radius, sides, time, edgeThickness);
     //4. Set noise. Use the snoise function and pt * 100
-    
+			float  noise = snoise(pt * 100);
     //5. Use the HLSL function lerp to blend between clearColor and fillColor*noise using the return
     //   value from step 3
-    
-    float4 color = 1;
-
+			    float4 color = lerp(clearColor, fillColor*noise, polygonValue);
+	//6. Set the pixel at id.xy to the color you calculated at step 5
     Result[id.xy] = color;
 }
