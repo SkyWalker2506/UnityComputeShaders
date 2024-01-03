@@ -120,7 +120,7 @@ public class BaseCompletePP : MonoBehaviour
 
     protected void CheckResolution(out bool resChange)
     {
-        resChange = false;
+        resChange = false; 
 
         if (texSize.x != thisCamera.pixelWidth || texSize.y != thisCamera.pixelHeight)
         {

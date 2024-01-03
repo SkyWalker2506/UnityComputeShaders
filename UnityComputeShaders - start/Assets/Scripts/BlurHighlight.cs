@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [ExecuteInEditMode]
 public class BlurHighlight : BaseCompletePP
 {
-    [Range(0, 50)]
+    [Range(1, 50)]
     public int blurRadius = 20;
     [Range(0.0f, 100.0f)]
     public float radius = 10;
@@ -16,18 +14,26 @@ public class BlurHighlight : BaseCompletePP
     public Transform trackedObject;
 
     Vector4 center;
+    RenderTexture horzOutput;
+    int kernelHorzPassID;
 
     protected override void Init()
     {
         center = new Vector4();
         kernelName = "Highlight";
         base.Init();
-
+        kernelHorzPassID = shader.FindKernel("HorzPass");
     }
 
     protected override void CreateTextures()
     {
         base.CreateTextures();
+        shader.SetTexture(kernelHorzPassID, "source", renderedSource);
+
+        CreateTexture(ref horzOutput);
+        
+        shader.SetTexture(kernelHorzPassID, "horzOutput", horzOutput);
+        shader.SetTexture(kernelHandle, "horzOutput", horzOutput);
     }
 
     private void OnValidate()
@@ -44,6 +50,7 @@ public class BlurHighlight : BaseCompletePP
         shader.SetFloat("radius", rad);
         shader.SetFloat("edgeWidth", rad * softenEdge / 100.0f);
         shader.SetFloat("shade", shade);
+        shader.SetInt("blurRadius", blurRadius);
     }
 
     protected override void DispatchWithSource(ref RenderTexture source, ref RenderTexture destination)
@@ -52,6 +59,7 @@ public class BlurHighlight : BaseCompletePP
 
         Graphics.Blit(source, renderedSource);
 
+        shader.Dispatch(kernelHorzPassID, groupSize.x, groupSize.y, 1);
         shader.Dispatch(kernelHandle, groupSize.x, groupSize.y, 1);
 
         Graphics.Blit(output, destination);
@@ -72,8 +80,9 @@ public class BlurHighlight : BaseCompletePP
                 center.y = pos.y;
                 shader.SetVector("center", center);
             }
-            bool resChange = false;
-            CheckResolution(out resChange);
+
+            bool resChange;
+            CheckResolution(out  resChange);
             if (resChange) SetProperties();
             DispatchWithSource(ref source, ref destination);
         }
