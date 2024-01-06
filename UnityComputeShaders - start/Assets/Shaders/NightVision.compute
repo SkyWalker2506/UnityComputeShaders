@@ -22,10 +22,31 @@ float inCircle( float2 pt, float2 center, float radius, float edgeWidth ){
     return 1.0 - smoothstep(radius-edgeWidth, radius, len);
 }
 
+
+float GetBinocularMask(float2 pixel)
+{
+    float2 center = source.Length/2;
+    float2 leftCenter = center - float2(radius*.7, 0);
+    float2 rightCenter = center + float2(radius*.7, 0);
+    float leftCircle = inCircle(pixel, leftCenter, radius, edgeWidth);
+    float rightCircle = inCircle(pixel, rightCenter, radius, edgeWidth);
+    return saturate(leftCircle + rightCircle);
+}
+
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    float3 finalColor = source[id.xy].rgb;
-           
+    float2 index = id.xy/2*2;
+
+    float noise = random(index.xy, time*time);
+    float3 srcColor =lerp(source[id.xy].rgb*2, source[index].rgb, noise);
+    float3 grayScale = float3(srcColor.r,srcColor.g,srcColor.b) / 3; 
+    float3 tintedColor =grayScale*tintColor.rgb;
+    float3 finalColor = lerp(srcColor, tintedColor, tintStrength);
+    float uvY= id.y/(float)source.Length.y;
+    float scanLine = saturate(smoothstep(.1,.2,frac(uvY*lines+time*3))+.3);
+    finalColor = lerp(source[id.xy].rgb*.5, finalColor, scanLine);
+    finalColor = lerp(0, finalColor, GetBinocularMask(id.xy));
+    
     output[id.xy] = float4(finalColor, 1);
 }
