@@ -34,8 +34,8 @@ float circle(float2 pt, float2 center, float radius, float line_width, float edg
     return result;
 }
 
-float onLine(float x, float y, float line_width, float edge_width){
-    return smoothstep(x-line_width/2.0-edge_width, x-line_width/2.0, y) - smoothstep(x+line_width/2.0, x+line_width/2.0+edge_width, y);
+float onLine(float position, float center, float line_width, float edge_width){
+    return smoothstep(position - line_width/2.0 - edge_width, position - line_width/2.0, center) - smoothstep(position + line_width/2.0, position + line_width/2.0 + edge_width, center);
 }
 
 float polygon(float2 pt, float2 center, float radius, int sides, float rotate, float edge_thickness){
@@ -68,8 +68,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         center.y /= aspectRatio;
     }
 
-    float3 color = onLine(uv.y, center.y, 0.002, 0.001) * axisColor.rgb;//xAxis
-    //TO DO: Add code here
+    float3 color = onLine(uv.y, center.y, 0.002, 0.001) * axisColor.rgb;
+    color += onLine(uv.x, center.x, 0.002, 0.001) * axisColor.rgb;
+    float circleRadius = 0.15;
+    color += circle(uv, center, circleRadius, 0.002, 0.001) * axisColor.rgb;
+    color += circle(uv, center, circleRadius*2, 0.002, 0.001) * axisColor.rgb;
+    color += circle(uv, center, circleRadius*3, 0.002, 0.001) * axisColor.rgb;
 
     float alpha = saturate(color.r + color.g + color.b);
     float3 finalColor = lerp(source[id.xy].rgb, color, alpha);
