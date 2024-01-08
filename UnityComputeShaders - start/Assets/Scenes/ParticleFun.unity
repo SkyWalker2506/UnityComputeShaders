@@ -392,10 +392,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 569278be8283441f2baf0a52f321bd76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  particleCount: 1000000
+  particleCount: 2500000
   material: {fileID: 2100000, guid: 8aab1aa4f1dea47639d5caf561297a33, type: 2}
   shader: {fileID: 7200000, guid: 14886d445ceca4afa808d01d70cb0fb6, type: 3}
-  pointSize: 1
+  pointSize: 10
 --- !u!4 &901185535
 Transform:
   m_ObjectHideFlags: 0
