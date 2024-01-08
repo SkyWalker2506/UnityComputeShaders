@@ -22,6 +22,15 @@
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 5.0
 		
+			struct Particle
+    		{
+        		float3 position;
+        		float3 velocity;
+        		float life;
+    		};
+
+			StructuredBuffer<Particle> particleBuffer;
+
 			struct v2f{
 				float4 position : SV_POSITION;
 				float4 color : COLOR;
@@ -35,11 +44,12 @@
 				v2f o = (v2f)0;
 
 				// Color
-				o.color = float4(1,0,0,1);
+				float lerpValue= particleBuffer[instance_id].life*.25f;
+				o.color = fixed4(1-lerpValue,lerpValue*2 +0.1,.5,lerpValue);
 
 				// Position
-				o.position = UnityObjectToClipPos(float4(0,0,0,0));
-				o.size = 1;
+				o.position = UnityObjectToClipPos(float4(particleBuffer[instance_id].position,1));
+				o.size = _PointSize;
 
 				return o;
 			}

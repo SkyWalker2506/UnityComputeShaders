@@ -45,6 +45,13 @@ public class ParticleFun : MonoBehaviour
         for (int i = 0; i < particleCount; i++)
         {
             //TO DO: Initialize particle
+            Vector3 position = Random.insideUnitSphere;
+            position.Normalize();
+            position *= Random.value * 5.0f;
+            particleArray[i].position = position;
+            particleArray[i].position.z+=3;
+            particleArray[i].velocity = Vector3.zero;
+            particleArray[i].life = Random.value * 5.0f +1.0f;
         }
 
         // create compute buffer
