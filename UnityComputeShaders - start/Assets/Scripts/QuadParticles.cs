@@ -99,6 +99,8 @@ public class QuadParticles : MonoBehaviour
         shader.SetFloat("halfSize", quadSize * 0.5f);
         
         material.SetBuffer("vertexBuffer", vertexBuffer);
+        shader.Dispatch(kernelID, groupSizeX, 1, 1);
+
     }
 
     void OnRenderObject()
@@ -117,6 +119,10 @@ public class QuadParticles : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!Input.GetMouseButton(0))
+        {
+            return;
+        }
         float[] mousePosition2D = { cursorPos.x, cursorPos.y };
 
         // Send datas to the compute shader
@@ -124,6 +130,7 @@ public class QuadParticles : MonoBehaviour
         shader.SetFloats("mousePosition", mousePosition2D);
 
         // Update the Particles
+   
         shader.Dispatch(kernelID, groupSizeX, 1, 1);
     }
 

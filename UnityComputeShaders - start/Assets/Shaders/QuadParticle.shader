@@ -43,7 +43,7 @@
 			const int vertexIndex = instance_id*6 + vertex_id;
 			float lerpValue = vertexBuffer[vertexIndex].life*.25;
 						
-			o.color = fixed4(1-lerpValue,lerpValue+.1,1,lerpValue);
+			o.color = fixed4(1.1-lerpValue,lerpValue+.1,lerpValue*2,lerpValue*.7);
 			o.position = UnityWorldToClipPos(float4(vertexBuffer[vertexIndex].position,1));
 			o.uv = vertexBuffer[vertexIndex].uv;
 			
@@ -53,7 +53,7 @@
 		float4 frag(v2f i) : COLOR
 		{
 			fixed4 col = tex2D(_MainTex, i.uv)*i.color;
-			return i.color;
+			return col;
 		}
 
 
