@@ -159,7 +159,7 @@ MonoBehaviour:
   boidSpeedVariation: 0.8
   boidMesh: {fileID: 4300000, guid: 98744b4f4158df441af5841eb9e98dbd, type: 3}
   boidMaterial: {fileID: 2100000, guid: 348752f5f8d734b5c9efb2ecacf9be91, type: 2}
-  boidsCount: 10000
+  boidsCount: 25000
   spawnRadius: 10
   target: {fileID: 204301668}
 --- !u!4 &204301668
