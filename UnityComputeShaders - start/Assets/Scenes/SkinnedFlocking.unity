@@ -502,14 +502,14 @@ MonoBehaviour:
   shader: {fileID: 7200000, guid: 90967c5e94f004255a9fdd7582fcec6a, type: 3}
   boidObject: {fileID: 1762089274}
   animationClip: {fileID: 7400000, guid: 8ec9bd4530b42b446938d365f3bba972, type: 3}
-  boidsCount: 2000
+  boidsCount: 10000
   spawnRadius: 10
   target: {fileID: 1669663790}
-  rotationSpeed: 4
-  boidSpeed: 6
-  neighbourDistance: 5
-  boidSpeedVariation: 0.8
-  boidFrameSpeed: 10
+  rotationSpeed: 6
+  boidSpeed: 8
+  neighbourDistance: 3
+  boidSpeedVariation: 0.9
+  boidFrameSpeed: 25
   frameInterpolation: 1
   boidMaterial: {fileID: 2100000, guid: 167b6806939d4a24497f112481564573, type: 2}
 --- !u!4 &1669663790
