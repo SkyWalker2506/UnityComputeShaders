@@ -127,12 +127,25 @@ public class SkinnedFlocking : MonoBehaviour {
 
     void Update()
     {
+
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
 
+        if(Input.GetMouseButton(0))
+        {
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.z = Camera.main.transform.position.z-100;
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            shader.SetVector("touchPos3D", worldPosition);
+        }
+        else
+        {
+            shader.SetVector("touchPos3D", Vector3.zero);
+        }
+
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
-        Graphics.DrawMeshInstancedIndirect( boidMesh, 0, boidMaterial, bounds, argsBuffer, 0, props);
+        Graphics.DrawMeshInstancedIndirect(boidMesh, 0, boidMaterial, bounds, argsBuffer, 0, props);
     }
 
     void OnDestroy()
@@ -145,9 +158,41 @@ public class SkinnedFlocking : MonoBehaviour {
     private void GenerateVertexAnimationBuffer()
     {
         boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
-
+        animator = boidObject.GetComponentInChildren<Animator>();
+        
+        int iLayer = 0;
+        AnimatorStateInfo aniStateInfo = animator.GetCurrentAnimatorStateInfo(iLayer);
+        Mesh bakedMesh = new Mesh();
+        float sampleTime = 0;
+        
+        numOfFrames = Mathf.ClosestPowerOfTwo((int)(animationClip.frameRate* animationClip.length));
+        float perFrameTime = animationClip.length / numOfFrames;
+        
         boidMesh = boidSMR.sharedMesh;
 
+        int vertexCount = boidSMR.sharedMesh.vertexCount;
+        Vector4[] vertexAnimationData = new Vector4[vertexCount*numOfFrames];
+        
+        for (int i = 0; i < numOfFrames; i++)
+        {
+            animator.Play(aniStateInfo.shortNameHash, iLayer, sampleTime);
+            animator.Update(0);
+            
+            boidSMR.BakeMesh(bakedMesh);
+
+            for (int j = 0; j <vertexCount; j++)
+            {
+                Vector4 vertex = bakedMesh.vertices[j];
+                vertex.w = 1;
+                vertexAnimationData[j * numOfFrames + i] = vertex;
+            }
+            
+            vertexAnimationBuffer = new ComputeBuffer(vertexAnimationData.Length, 16);
+            vertexAnimationBuffer.SetData(vertexAnimationData);
+            boidMaterial.SetBuffer("vertexAnimation", vertexAnimationBuffer);
+            sampleTime += perFrameTime;
+        }
+        
         boidObject.SetActive(false);
     }
 }
