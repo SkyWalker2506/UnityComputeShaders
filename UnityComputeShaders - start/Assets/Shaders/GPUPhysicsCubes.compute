@@ -125,7 +125,10 @@ float particleDiameter;
 [numthreads(CLEAR_GRID_THREAD_COUNT,1,1)]
 void ClearGrid (uint3 id : SV_DispatchThreadID)
 {
-	
+		Voxel voxel;
+		voxel.vox1 = int4(-1,-1,-1,-1);
+		voxel.vox2 = int4(-1,-1,-1,-1);
+		voxelGridBuffer[id.x] = voxel;
 }
 
 // Returns the grid index for particle p
@@ -150,7 +153,28 @@ int GetGridIndex(int3 loc) {
 [numthreads(PARTICLE_THREAD_COUNT,1,1)]
 void PopulateGrid (uint3 id : SV_DispatchThreadID)
 {
-	
+	const int index = GetParticleGridIndex(id.x);
+	if(index>0&&index<gridMax){
+		Voxel voxel = voxelGridBuffer[index];
+		if(voxel.vox1.x==-1){
+			voxel.vox1.x = id.x;
+		}else if(voxel.vox1.y==-1){
+			voxel.vox1.y = id.x;
+		}else if(voxel.vox1.z==-1){
+			voxel.vox1.z = id.x;
+		}else if(voxel.vox1.w==-1){
+			voxel.vox1.w = id.x;
+		}else if(voxel.vox2.x==-1){
+			voxel.vox2.x = id.x;
+		}else if(voxel.vox2.y==-1){
+			voxel.vox2.y = id.x;
+		}else if(voxel.vox2.z==-1){
+			voxel.vox2.z = id.x;
+		}else if(voxel.vox2.w==-1){
+			voxel.vox2.w = id.x;
+		}
+		voxelGridBuffer[index] = voxel;
+	}
 }
 
 /////////////////////////
@@ -205,9 +229,31 @@ float3 CollisionReaction(int j_id, int i_id)
 
 }
 
+float3 TryCollisionReaction(int i,int j) 
+{
+	if (j != i&&j>-1) 
+	{
+		return CollisionReaction(j, i);
+	}
+	return 0;
+}
+
 // checks cell x,y,z for collision with i, calls CollisionReaction if so
 float3 ForceFromGridCell(int i, int x, int y, int z) {
 	float3 force = 0;
+
+	if (x>-1&&y>-1&z>-1&&x<gridDimensions.x&&y<gridDimensions.y&&z<gridDimensions.z){
+		const int index = GetGridIndex(x,y,z);
+		Voxel voxel = voxelGridBuffer[index];
+		force += TryCollisionReaction(i, voxel.vox1.x);
+		force += TryCollisionReaction(i, voxel.vox1.y);
+		force += TryCollisionReaction(i, voxel.vox1.z);
+		force += TryCollisionReaction(i, voxel.vox1.w);
+		force += TryCollisionReaction(i, voxel.vox2.x);
+		force += TryCollisionReaction(i, voxel.vox2.y);
+		force += TryCollisionReaction(i, voxel.vox2.z);
+		force += TryCollisionReaction(i, voxel.vox2.w);
+	}
 	
 	return force;
 }
@@ -216,8 +262,17 @@ float gravityCoefficient;
 [numthreads(PARTICLE_THREAD_COUNT,1,1)]
 void CollisionDetectionWithGrid (uint3 id : SV_DispatchThreadID)
 {
-	float3 force = 0;
-	
+	float3 force = CollisionReaction(-1,id.x);
+	int3 loc = GetParticleGridLocation(id.x);
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++){
+			for (int z = -1; z <= 1; z++){
+				force += ForceFromGridCell(id.x, loc.x + x, loc.y + y, loc.z + z);
+			}
+		}
+	}
+	force.y -= gravityCoefficient;
+
 	particlesBuffer[id.x].force = force;
 }
 
