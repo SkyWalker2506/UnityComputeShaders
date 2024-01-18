@@ -41,7 +41,12 @@ public class Challenge6 : MonoBehaviour
     [Range(0.1f,2)]
     public float trampleRadius = 0.5f;
     //TO DO: Add wind direction (0-360), speed (0-2)  and scale (10-1000)
-
+    [Range(0, 360)]
+    public float windDirection;
+    [Range(0, 2)]
+    public float windSpeed;
+    [Range(10, 1000)]
+    public float windScale;
     ComputeBuffer clumpsBuffer;
     ComputeBuffer argsBuffer;
     GrassClump[] clumpsArray;
@@ -54,7 +59,6 @@ public class Challenge6 : MonoBehaviour
     Vector4 pos = new Vector4();
     Material groundMaterial;
 
-    // Start is called before the first frame update
     void Start()
     {
         bounds = new Bounds(Vector3.zero, new Vector3(30, 30, 30));
@@ -74,7 +78,8 @@ public class Challenge6 : MonoBehaviour
             renderer.material = (viewNoise) ? visualizeNoise : groundMaterial;
 
             //TO DO: Set wind vector
-            Vector4 wind = new Vector4();
+            float theta = windDirection * Mathf.PI / 180;
+            Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windScale);
             shader.SetVector("wind", wind);
             visualizeNoise.SetVector("wind", wind);
         }
@@ -115,7 +120,8 @@ public class Challenge6 : MonoBehaviour
         shader.SetFloat("maxLean", maxLean * Mathf.PI / 180);
         shader.SetFloat("trampleRadius", trampleRadius);
         //TO DO: Set wind vector
-        Vector4 wind = new Vector4();
+        float theta = windDirection * Mathf.PI / 180;
+        Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windScale);
         shader.SetVector("wind", wind);
         timeID = Shader.PropertyToID("time");
         tramplePosID = Shader.PropertyToID("tramplePos");
