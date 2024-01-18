@@ -70,18 +70,66 @@ public class GrassBlades : MonoBehaviour
                 float halfWidth = height / 10;
 
                 //1. Use the above variables to define the vertices array
-
+                //   hint: each blade has 9 vertices
+                Vector3[] vertices= new Vector3[]
+                {
+                    new Vector3(-halfWidth, 0, 0),
+                    new Vector3(halfWidth, 0, 0),
+                    new Vector3(-halfWidth*.9f, rowHeight, 0),
+                    new Vector3(halfWidth*.9f, rowHeight, 0),
+                    new Vector3(-halfWidth*.8f, rowHeight * 2, 0),
+                    new Vector3(halfWidth*.8f, rowHeight * 2, 0),
+                    new Vector3(-halfWidth*.7f, rowHeight * 3, 0),
+                    new Vector3(halfWidth*.7f, rowHeight * 3, 0),
+                    new Vector3(0, rowHeight * 4, 0),
+                };
+                
                 //2. Define the normals array, hint: each vertex uses the same normal
                 Vector3 normal = new Vector3(0, 0, -1);
-
-                //3. Define the uvs array
-
+                Vector3[] normals = new Vector3[]
+                {
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                    normal,
+                };
+                //3. Define the uvs array  
+                Vector2[] uv = new Vector2[]
+                {
+                    new Vector2(0, 0),
+                    new Vector2(1, 0),
+                    new Vector2(0.05f, 0.25f),
+                    new Vector2(0.95f, 0.25f),
+                    new Vector2(0.1f, 0.5f),
+                    new Vector2(0.9f, 0.5f),
+                    new Vector2(0.15f, 0.75f),
+                    new Vector2(0.85f, 0.75f),
+                    new Vector2(0, 1),
+                };
+                
                 //4. Define the indices array
-
+                int[] indices= new int[]
+                {
+                    0,1,2,
+                    1,3,2,
+                    2,3,4,
+                    3,5,4,
+                    4,5,6,
+                    5,7,6,
+                    6,7,8
+                };
                 //5. Assign the mesh properties using the arrays
                 //   for indices use
                 //   mesh.SetIndices( indices, MeshTopology.Triangles, 0 );
-
+                mesh.vertices = vertices;
+                mesh.normals = normals;
+                mesh.uv = uv;
+                mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             }
 
             return mesh;
@@ -108,7 +156,8 @@ public class GrassBlades : MonoBehaviour
             renderer.material = (viewNoise) ? visualizeNoise : groundMaterial;
 
             //TO DO: set wind using wind direction, speed and noise scale
-            Vector4 wind = new Vector4();
+            float theta = windDirection * Mathf.PI / 180;
+            Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windScale);
             shader.SetVector("wind", wind);
             visualizeNoise.SetVector("wind", wind);
         }
@@ -150,7 +199,8 @@ public class GrassBlades : MonoBehaviour
         shader.SetBuffer(kernelBendGrass, "bladesBuffer", bladesBuffer);
         shader.SetFloat("maxBend", maxBend * Mathf.PI / 180);
         //TO DO: set wind using wind direction, speed and noise scale
-        Vector4 wind = new Vector4();
+        float theta = windDirection * Mathf.PI / 180;
+        Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windScale);
         shader.SetVector("wind", wind);
 
         timeID = Shader.PropertyToID("time");
