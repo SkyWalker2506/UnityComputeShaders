@@ -397,7 +397,7 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: c2623497851e645e48d66ce12ce24c70, type: 2}
   shader: {fileID: 7200000, guid: e3ab1331587c445d5a86834569d268c7, type: 3}
   visualizeNoise: {fileID: 2100000, guid: 64be14a0480d049e0ba65fbca40d8bc1, type: 2}
-  viewNoise: 1
+  viewNoise: 0
   density: 0.9
   scale: 1.86
   maxBend: 36.7
