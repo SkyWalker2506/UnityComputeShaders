@@ -50,7 +50,40 @@ public class GrassClumps : MonoBehaviour
 
     void InitShader()
     {
+        MeshFilter filter = GetComponent<MeshFilter>();
+        Bounds bound = filter.sharedMesh.bounds;
+
+        Vector3 clumps = bound.extents;
+        Vector3 vec = transform.localScale * 10 * density;
+        clumps.x *= vec.x;
+        clumps.z *= vec.z;
+        int total = Mathf.RoundToInt(clumps.x * clumps.z);
+        kernelLeanGrass = shader.FindKernel("LeanGrass");
+        uint threadGroupSize;
+        shader.GetKernelThreadGroupSizes(kernelLeanGrass, out threadGroupSize, out _, out _);
+        groupSize = Mathf.CeilToInt((float)total / threadGroupSize);
+        int count= groupSize * (int)threadGroupSize;
+        clumpsArray = new GrassClump[count];
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 pos = new Vector3((Random.value*2-1)*bound.extents.x+bound.center.x,
+                0, (Random.value * 2 - 1) * bound.extents.z + bound.center.z);
+            pos=transform.TransformPoint(pos);
+            clumpsArray[i] = new GrassClump(pos);
+        }
         
+        clumpsBuffer = new ComputeBuffer(count, SIZE_GRASS_CLUMP);
+        clumpsBuffer.SetData(clumpsArray);
+        
+        shader.SetBuffer(kernelLeanGrass, "clumpsBuffer", clumpsBuffer);
+        shader.SetFloat("maxLean", maxLean*Mathf.PI/180);
+        timeID = Shader.PropertyToID("time");
+        material.SetBuffer("clumpsBuffer", clumpsBuffer);
+        material.SetFloat("_Scale", scale);
+        argsArray[0] = mesh.GetIndexCount(0);
+        argsArray[1] = (uint)count;
+        argsBuffer = new ComputeBuffer(1, argsArray.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+        argsBuffer.SetData(argsArray);
     }
 
     // Update is called once per frame
