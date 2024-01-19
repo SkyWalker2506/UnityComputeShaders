@@ -47,7 +47,11 @@ RWTexture2D<float2> X2_out;
 [numthreads(8, 8, 1)]
 void Advect(uint2 tid : SV_DispatchThreadID)
 {
-    
+    uint2 dim;
+    W_out.GetDimensions(dim.x, dim.y);
+
+    float2 uv = (tid +.5f) / dim;
+    float2 div = U_in[tid]*float2((float)dim.y/dim.x, 1);
 }
 
 // Add-force step  
