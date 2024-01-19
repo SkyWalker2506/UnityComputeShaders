@@ -42,7 +42,26 @@ public class StableFluids : MonoBehaviour
 
     RenderTexture CreateRenderTexture(int componentCount, int width = 0, int height = 0)
     {
-        RenderTexture rt = new RenderTexture(width, height, 0);
+        RenderTextureFormat format = RenderTextureFormat.ARGBHalf;
+        if (componentCount == 1)
+        {
+            format = RenderTextureFormat.RHalf;
+        }
+        else if (componentCount == 2)
+        {
+            format = RenderTextureFormat.RGHalf;
+        }
+        
+        if (width == 0)
+        {
+            width = resolutionX;
+        }
+        if (height == 0)
+        {
+            height = resolutionY;
+        }
+          
+        RenderTexture rt = new RenderTexture(width, height, 0, format);
         rt.enableRandomWrite = true;
         rt.Create();
         return rt;
@@ -64,17 +83,59 @@ public class StableFluids : MonoBehaviour
 
     void InitBuffers()
     {
-        
+        vfbRTV1 = CreateRenderTexture(2);
+        vfbRTV2 = CreateRenderTexture(2);
+        vfbRTV3 = CreateRenderTexture(2);
+        vfbRTP1 = CreateRenderTexture(1);
+        vfbRTP2 = CreateRenderTexture(1);
+        colorRT1 = CreateRenderTexture(4, Screen.width, Screen.height);
+        colorRT2 = CreateRenderTexture(4, Screen.width, Screen.height);
     }
 
     void InitShader()
     {
+        // Find the kernels in the compute shader
+        kernelAdvect = compute.FindKernel("Advect");
+        kernelForce = compute.FindKernel("Force");
+        kernelProjectSetup = compute.FindKernel("ProjectSetup");
+        kernelProject = compute.FindKernel("Project");
+        kernelDiffuse1 = compute.FindKernel("Diffuse1");
+        kernelDiffuse2 = compute.FindKernel("Diffuse2");
+
+        // Set the textures for the kernels
+        compute.SetTexture(kernelAdvect, "U_in", vfbRTV1);
+        compute.SetTexture(kernelAdvect, "W_out", vfbRTV2);
         
+        compute.SetTexture(kernelDiffuse2, "B2_in", vfbRTV1);
+        
+        compute.SetTexture(kernelForce, "W_in", vfbRTV2);
+        compute.SetTexture(kernelForce, "W_out", vfbRTV3);
+        
+        compute.SetTexture(kernelProjectSetup, "W_in", vfbRTV3);
+        compute.SetTexture(kernelProjectSetup, "DivW_out", vfbRTV2);
+        compute.SetTexture(kernelProjectSetup, "P_out", vfbRTP1);
+        
+        compute.SetTexture(kernelDiffuse1, "B1_in", vfbRTV2);
+        
+        compute.SetTexture(kernelProject, "W_in", vfbRTV3);
+        compute.SetTexture(kernelProject, "P_in", vfbRTP1);
+        compute.SetTexture(kernelProject, "U_out", vfbRTV1);
+
+        compute.SetFloat("ForceExponent", exponent);
+        
+        material.SetFloat("_ForceExponent", exponent);
+        material.SetTexture("_VelocityField", vfbRTV1);
     }
 
     void OnDestroy()
     {
-        
+        Destroy(vfbRTV1);
+        Destroy(vfbRTV2);
+        Destroy(vfbRTV3);
+        Destroy(vfbRTP1);
+        Destroy(vfbRTP2);
+        Destroy(colorRT1);
+        Destroy(colorRT2);
     }
 
     void Update()
